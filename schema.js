@@ -47,7 +47,6 @@ const schema = {
       type: "number",
       title: "Rotation Degrees",
     },
-    // New grid properties
     columns: {
       type: "number",
       title: "Number of Columns",

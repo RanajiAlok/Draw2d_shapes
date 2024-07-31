@@ -185,88 +185,59 @@ document.addEventListener("DOMContentLoaded", () => {
   const drawGrid = (two, formData) => {
     const columns = parseInt(formData.columns, 10);
     const rows = parseInt(formData.rows, 10);
+    const shadedElements = parseInt(formData.shade_element, 10);
+    const drawDirection = formData.element_draw_direction;
+
     const cellWidth = 500 / columns;
     const cellHeight = 500 / rows;
 
-    for (let i = 0; i <= columns; i++) {
-      two.makeLine(i * cellWidth, 0, i * cellWidth, 500);
-    }
-
-    for (let i = 0; i <= rows; i++) {
-      two.makeLine(0, i * cellHeight, 500, i * cellHeight);
-    }
-
-    const shadeElements = parseInt(formData.shade_element, 10);
-    const direction = formData.element_draw_direction;
-
-    let shadedCells = 0;
-    for (let row = 0; row < rows && shadedCells < shadeElements; row++) {
-      for (let col = 0; col < columns && shadedCells < shadeElements; col++) {
-        if (
-          (direction === "row" && shadedCells < row * columns + col + 1) ||
-          (direction === "col" && shadedCells < col * rows + row + 1) ||
-          direction === "cell"
-        ) {
-          const rect = two.makeRectangle(
-            col * cellWidth + cellWidth / 2,
-            row * cellHeight + cellHeight / 2,
-            cellWidth,
-            cellHeight
-          );
-          rect.fill = "rgba(255, 0, 0, 0.5)";
-          shadedCells++;
-        }
+    for (let i = 0; i < columns; i++) {
+      for (let j = 0; j < rows; j++) {
+        const rect = two.makeRectangle(
+          i * cellWidth + cellWidth / 2,
+          j * cellHeight + cellHeight / 2,
+          cellWidth,
+          cellHeight
+        );
+        rect.stroke = "black";
       }
     }
 
-    return null; // Grid doesn't need rotation
+    for (let i = 0; i < shadedElements; i++) {
+      let col, row;
+      if (drawDirection === "row") {
+        row = Math.floor(i / columns);
+        col = i % columns;
+      } else if (drawDirection === "col") {
+        col = Math.floor(i / rows);
+        row = i % rows;
+      } else {
+        col = Math.floor(Math.random() * columns);
+        row = Math.floor(Math.random() * rows);
+      }
+
+      const rect = two.makeRectangle(
+        col * cellWidth + cellWidth / 2,
+        row * cellHeight + cellHeight / 2,
+        cellWidth,
+        cellHeight
+      );
+      rect.fill = "rgba(255, 0, 0, 0.5)";
+    }
   };
 
   const setupJSXGraph = (formData) => {
     if (jsxBoard) {
-      JXG.JSXGraph.freeBoard(jsxBoard);
+      JSXGraph.freeBoard(jsxBoard);
     }
-
     jsxBoard = JXG.JSXGraph.initBoard("drawing-area", {
-      boundingbox: [-1, 11, 11, -1],
+      boundingbox: [-5, 5, 5, -5],
       axis: true,
-      showNavigation: false,
-      showCopyright: false,
     });
-
-    jsxBoard.on("down", function (e) {
-      const coords = jsxBoard.getUsrCoordsOfMouse(e);
-      const x = Math.floor(coords[0]);
-      const y = Math.floor(coords[1]);
-
-      if (x >= 0 && x < formData.columns && y >= 0 && y < formData.rows) {
-        const cell = jsxBoard.create(
-          "polygon",
-          [
-            [x, y],
-            [x + 1, y],
-            [x + 1, y + 1],
-            [x, y + 1],
-          ],
-          {
-            fillColor: "red",
-            fillOpacity: 0.5,
-            borders: { visible: false },
-          }
-        );
-      }
-    });
+    // More JSXGraph drawing logic based on formData
   };
 
   createForm(schema);
-
-  document.getElementById("shape_type").addEventListener("change", (event) => {
-    if (event.target.value === "any") {
-      polygonSidesContainer.style.display = "block";
-    } else {
-      polygonSidesContainer.style.display = "none";
-    }
-  });
 
   drawButton.addEventListener("click", () => {
     const formData = getFormData();
